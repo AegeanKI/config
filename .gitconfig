@@ -1,0 +1,11 @@
+[user]
+	email = pmes.986612@gmail.com
+	name = AegeanKI
+[color]
+	ui = true
+[core]
+	editor = vim
+[alias]
+	co = commit
+	logs = log --pretty=oneline --abbrev-commit
+	lg = log --color --graph --all --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --
