@@ -26,14 +26,14 @@
     " color mod {
         set t_Co=256        
         " the color(theme) use now
-        set background=dark 
+        set background=dark  
     " },
     " overlength {          " highlight if one line over 80 word
     "   highlight OverLength ctermbg=red ctermfg=white guibg=#592929
     "   match OverLength /\%81v.\+/
     " },
     " show line number
-    set number              
+    set number
 " }
 
 " tab {
@@ -68,9 +68,10 @@
 " }
 
 " some useful map {
-    inoremap jk <esc>
-    nnoremap <Backspace> <left>x<esc>
-    nnoremap load <esc>:so %<CR>:noh<CR>
+    set timeout
+    set timeoutlen=200
+    let mapleader = ","
+    nnoremap ll <esc>:so ~/.vimrc<CR>:noh<CR>
     " cut and paste {
         " can use <control> + <x> to cut the cursor line
         inoremap <C-x> <esc>ddi
@@ -91,18 +92,18 @@
         nnoremap <C-S-right> $
         inoremap <C-S-right> <esc>$i
         " can use <shit> + <up> to move cursor line to up
-        nnoremap <C-S-up> mx<up>ddp<up>`x
-        inoremap <C-S-up> <esc>mx<up>ddp<up>`x<right>i
+        nnoremap <C-S-up> mxkddpk`x
+        inoremap <C-S-up> <esc>mxkddpk`xli
         " can use <shit> + <up> to move cursor line to down
-        nnoremap <C-S-down> mx<down>dd<up>P`x
-        inoremap <C-S-down> <esc>mx<down>dd<up>P`x<right>i
+        nnoremap <C-S-down> mxjddkP`x
+        inoremap <C-S-down> <esc>mxjddkP`xli
         " remap gm to real middle of current line
         nnoremap <silent>gm :call <SID>Gm()<CR>
         " onoremap <silent>gm :call <SID>Gm()<CR>
     " save {
         " save file with sudo
-        inoremap <C-a><C-s> <esc>:w !sudo tee > /dev/null %<CR>
-        nnoremap <C-a><C-s> :w !sudo tee > /dev/null %<CR>
+        inoremap <leader>s <esc>:w !sudo tee > /dev/null %<CR>
+        nnoremap <leader>s :w !sudo tee > /dev/null %<CR>
         " save file
         nnoremap <C-s> :w<CR>
         inoremap <C-s> <esc>:w<CR>
@@ -120,6 +121,8 @@
         vnoremap < <gv
         vnoremap <tab> >gv
         vnoremap <S-tab> <gv
+        " reindent all file
+        nnoremap <leader>g G=gg
     " },
     " quote {
         " complete the quote and bracket
@@ -131,8 +134,27 @@
         " inoremap " ""<left>
     " },
     " exit {
-        
-    "
+        " use jk to esc
+        inoremap jk <esc>
+    " },
+    " select {
+        " select all
+        nnoremap <C-a> ggVG 
+    " },
+    " delete {
+        vnoremap <Backspace> d
+        nnoremap <Backspace> <left>x<esc>
+        " delete to the end of line
+        nnoremap D d$
+    " },
+    " search {
+        " keep result at the center
+        nnoremap n nzz
+        nnoremap N Nzz
+    " },
+    " complete {
+        inoremap <tab> <C-R>=TabComplete()<CR>
+    " }
 " }
 
 " comment and uncomment {
@@ -175,5 +197,13 @@ function! s:Ask(abbr,expansion,defprompt)
     let answer = confirm("Expand '" . a:abbr . "'?", "&Yes\n&No", a:defprompt)
     return answer == 1 ? a:expansion : a:abbr
 endfunction
+
+function! TabComplete()
+    if col('.') > 1 && strpart(getline('.'), col('.') - 2, 3) =~ '^\w'
+        return "\<C-P>"
+    else
+        return "\<Tab>"
+endfunction
+
+" iabbrev <expr> for "for () {\n}"
 " iabbrev <expr> for <SID>Ask('for', "for () {}", 1)
-" iabbrev <expr> for "for () {\n}"   
