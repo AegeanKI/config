@@ -30,7 +30,7 @@
 
 " view {
     " color mod {
-        set t_co=256        
+        " set t_co=256        
         " the color(theme) use now
         set background=dark  
     " },
@@ -209,8 +209,8 @@
         let b:comment_leader = '# '
     endif
     vnoremap <C-k> :call ToggleComment(b:comment_leader)<CR>
-    nnoremap <C-k> :call ToggleComment(b:comment_leader)<CR>:noh<CR>
-    inoremap <C-k> <esc>:call ToggleComment(b:comment_leader)<CR>:noh<CR>i
+    nnoremap <C-k> :call ToggleComment(b:comment_leader)<CR>
+    inoremap <C-k> <esc>:call ToggleComment(b:comment_leader)<CR>i
 " }
 
 " command! -range Comment call Test()
@@ -233,28 +233,27 @@ function! ToggleComment(comment_leader) range
         let i = i + 1
     endwhile
 
-    let min_indent = repeat(" ", min_space_num)
-    let space_comment_leader = min_indent . a:comment_leader
     let comment = 0
     let i = a:firstline
     while i <= a:lastline
-        if getline(i) !~ "^" . space_comment_leader
-            " 1 is true
+        let regex = "^ *" . a:comment_leader
+        if getline(i) !~ regex
             let comment = 1
         endif
         let i = i + 1
     endwhile
+    execute "echo 'regex=". regex . "'"
 
+    let min_indent = repeat(" ", min_space_num)
+    let space_comment_leader = min_indent . a:comment_leader
     let i = a:firstline
     while i <= a:lastline
-        let cl = getline(i)
         if comment
-            let cl2 = substitute(cl, "^" . min_indent, space_comment_leader, "")
-            call setline(i, cl2)
+            let cl2 = substitute(getline(i), "^" . min_indent, space_comment_leader, "")
         else
-            let cl2 = substitute(cl, space_comment_leader, min_indent, "")
-            call setline(i, cl2)
+            let cl2 = substitute(getline(i), space_comment_leader, min_indent, "")
         endif
+        call setline(i, cl2)
         let i = i + 1
     endwhile
 endfunction
