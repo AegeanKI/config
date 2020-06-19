@@ -82,7 +82,9 @@
     set timeoutlen=200
     let mapleader = "\<space>\<space>"
     " for vimrc {
+        " reload vimrc
         nnoremap <leader>l <esc>:so $MYVIMRC<CR>:noh<CR>
+        " open vimrc vertical
         nnoremap <leader>v :vsplit $MYVIMRC<CR>
     " }
     " cut and paste {
@@ -95,7 +97,7 @@
         " can use <control> + <p> to paste the cursor line
         inoremap <C-c> <esc>yy<esc>
         vnoremap <C-c> y
-        nnoremap <C-c> <esc>:call CopyLine()<esc>
+        nnoremap <C-c> yy
     " },
     " move cursor {
         " can use <control> + <shift> + <left> to move to the beginning of the line
@@ -206,11 +208,9 @@
     if !exists('b:comment_leader')
         let b:comment_leader = '# '
     endif
-    noremap <C-_> :call ToggleComment(b:comment_leader)<CR>:noh<CR>
-    noremap <C-k> :call ToggleComment(b:comment_leader)<CR>:noh<CR>
-    inoremap <C-_> <esc>:call ToggleComment(b:comment_leader)<CR>:noh<CR>i
+    vnoremap <C-k> :call ToggleComment(b:comment_leader)<CR>
+    nnoremap <C-k> :call ToggleComment(b:comment_leader)<CR>:noh<CR>
     inoremap <C-k> <esc>:call ToggleComment(b:comment_leader)<CR>:noh<CR>i
-    vnoremap <C-k> :call Test(b:comment_leader)<CR>
 " }
 
 " command! -range Comment call Test()
@@ -222,7 +222,7 @@
 "   endfor
 " endfunction
 
-function! Test(comment_leader) range
+function! ToggleComment(comment_leader) range
     let i = a:firstline
     let min_space_num = 1000
     while i <= a:lastline
@@ -235,13 +235,12 @@ function! Test(comment_leader) range
 
     let min_indent = repeat(" ", min_space_num)
     let space_comment_leader = min_indent . a:comment_leader
-    let uncomment = 0
+    let comment = 0
     let i = a:firstline
     while i <= a:lastline
-        let cl = getline(i)
-        if cl =~ "^" . space_comment_leader
-        else
-            let uncomment = 1
+        if getline(i) !~ "^" . space_comment_leader
+            " 1 is true
+            let comment = 1
         endif
         let i = i + 1
     endwhile
@@ -249,7 +248,7 @@ function! Test(comment_leader) range
     let i = a:firstline
     while i <= a:lastline
         let cl = getline(i)
-        if uncomment
+        if comment
             let cl2 = substitute(cl, "^" . min_indent, space_comment_leader, "")
             call setline(i, cl2)
         else
@@ -258,18 +257,6 @@ function! Test(comment_leader) range
         endif
         let i = i + 1
     endwhile
-endfunction
-
-function! ToggleComment(comment_leader)
-    if getline('.') =~ "^". a:comment_leader
-        :exe 's/^' . a:comment_leader . '//'
-    else
-        :exe 's/^/' . a:comment_leader . '/'
-    endif
-endfunction
-
-function! CopyLine()
-    :normal yy
 endfunction
 
 function! s:Gm()
