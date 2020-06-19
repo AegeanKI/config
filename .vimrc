@@ -9,8 +9,14 @@
     set bs=2                
     " retain the command history, ex wq
     set history=50
+    " let chinese can be used
+    set encoding=utf-8
     " auto read file while file change outside vim
     set autoread
+    " Allow us to use Ctrl-s and Ctrl-q as keybinds
+    silent !stty -ixon
+    " Restore default behaviour when leaving Vim.
+    autocmd VimLeave * silent !stty ixon
 " }
 
 " indent {
@@ -24,7 +30,7 @@
 
 " view {
     " color mod {
-        set t_Co=256        
+        set t_co=256        
         " the color(theme) use now
         set background=dark  
     " },
@@ -42,7 +48,11 @@
     " 4 space while hit tab
     set softtabstop=4   
     " 4 space while auto indent
-    set shiftwidth=4    
+    set shiftwidth=4
+    " set 2 space on these file type
+    autocmd FileType html setlocal ts=2 sts=2 sw=2
+    autocmd FileType ruby setlocal ts=2 sts=2 sw=2
+    autocmd FileType javascript setlocal ts=2 sts=2 sw=2
 " } 
 
 " mouse {
@@ -70,8 +80,11 @@
 " some useful map {
     set timeout
     set timeoutlen=200
-    let mapleader = ","
-    nnoremap ll <esc>:so ~/.vimrc<CR>:noh<CR>
+    let mapleader = "\<space>\<space>"
+    " for vimrc {
+        nnoremap <leader>l <esc>:so $MYVIMRC<CR>:noh<CR>
+        nnoremap <leader>v :vsplit $MYVIMRC<CR>
+    " }
     " cut and paste {
         " can use <control> + <x> to cut the cursor line
         inoremap <C-x> <esc>ddi
@@ -81,10 +94,10 @@
         nnoremap <C-v> <esc>p
         " can use <control> + <p> to paste the cursor line
         inoremap <C-c> <esc>yy<esc>
-        " vnoremap <C-c> <esc>y<esc>
+        vnoremap <C-c> y
         nnoremap <C-c> <esc>:call CopyLine()<esc>
     " },
-   " move cursor {
+    " move cursor {
         " can use <control> + <shift> + <left> to move to the beginning of the line
         nnoremap <C-S-left> ^
         inoremap <C-S-left> <esc>^i
@@ -99,7 +112,6 @@
         inoremap <C-S-down> <esc>mxjddkP`xli
         " remap gm to real middle of current line
         nnoremap <silent>gm :call <SID>Gm()<CR>
-        " onoremap <silent>gm :call <SID>Gm()<CR>
     " save {
         " save file with sudo
         inoremap <leader>s <esc>:w !sudo tee > /dev/null %<CR>
@@ -123,15 +135,18 @@
         vnoremap <S-tab> <gv
         " reindent all file
         nnoremap <leader>g G=gg
+        set pastetoggle=<leader>p
     " },
-    " quote {
-        " complete the quote and bracket
-        " inoremap ( ()<left>
-        " inoremap [ []<left>
-        " inoremap { {}<left>
-        " inoremap ' ''<left>
-        " not usefual while " is for comment
-        " inoremap " ""<left>
+    " quote and bracket {
+        " quote bracket current word
+        nnoremap <leader>" viw<esc>a"<esc>bi"<esc>lel
+        inoremap <leader>" <esc>viw<esc>a"<esc>bi"<esc>leli
+        nnoremap <leader>' viw<esc>a'<esc>bi'<esc>lel
+        inoremap <leader>' <esc>viw<esc>a'<esc>bi'<esc>leli
+        nnoremap <leader>{ viw<esc>a}<esc>bi{<esc>lel
+        inoremap <leader>{ <esc>viw<esc>a}<esc>bi{<esc>leli
+        nnoremap <leader>( viw<esc>a)<esc>bi(<esc>lel
+        inoremap <leader>( <esc>viw<esc>a)<esc>bi(<esc>leli
     " },
     " exit {
         " use jk to esc
@@ -140,6 +155,8 @@
     " select {
         " select all
         nnoremap <C-a> ggVG 
+        " select one word
+        nnoremap <leader><space> viw
     " },
     " delete {
         vnoremap <Backspace> d
@@ -154,7 +171,26 @@
     " },
     " complete {
         inoremap <tab> <C-R>=TabComplete()<CR>
+        inoremap <tab><tab> <tab>
+    " },
+    " switch case {
+        nnoremap <leader>U gUiw
+        nnoremap <leader>L guiw
     " }
+    " unmap
+        map { <nop>
+        map } <nop>
+        map ( <nop>
+        map ) <nop>
+    " }
+" }
+
+" abbreviation {
+    iabbrev adn and
+    iabbrev fucntion function
+    iabbrev @@ @gmail.com
+    " iabbrev <expr> for "for () {\n}"
+    " iabbrev <expr> for <SID>Ask('for', "for () {}", 1)
 " }
 
 " comment and uncomment {
@@ -165,13 +201,64 @@
     autocmd FileType mail               let b:comment_leader = '> '
     autocmd FileType vim                let b:comment_leader = '" '
     autocmd FileType c,cpp              let b:comment_leader = '\/\/ '
+    autocmd FileType javascript         let b:comment_leader = '\/\/ '
     " default is '#'
     if !exists('b:comment_leader')
         let b:comment_leader = '# '
     endif
     noremap <C-_> :call ToggleComment(b:comment_leader)<CR>:noh<CR>
+    noremap <C-k> :call ToggleComment(b:comment_leader)<CR>:noh<CR>
     inoremap <C-_> <esc>:call ToggleComment(b:comment_leader)<CR>:noh<CR>i
+    inoremap <C-k> <esc>:call ToggleComment(b:comment_leader)<CR>:noh<CR>i
+    vnoremap <C-k> :call Test(b:comment_leader)<CR>
 " }
+
+" command! -range Comment call Test()
+" function! Comment() range
+"   for line_number in range(a:firstline, a:lastline)
+"     let current_line = getline(line_number)
+"     let current_line_commented = substitute(current_line, '^', '# ', "")
+"     call setline(line_number, current_line_commented)
+"   endfor
+" endfunction
+
+function! Test(comment_leader) range
+    let i = a:firstline
+    let min_space_num = 1000
+    while i <= a:lastline
+        let space_num = indent(i)
+        if space_num < min_space_num
+            let min_space_num = space_num
+        endif
+        let i = i + 1
+    endwhile
+
+    let min_indent = repeat(" ", min_space_num)
+    let space_comment_leader = min_indent . a:comment_leader
+    let uncomment = 0
+    let i = a:firstline
+    while i <= a:lastline
+        let cl = getline(i)
+        if cl =~ "^" . space_comment_leader
+        else
+            let uncomment = 1
+        endif
+        let i = i + 1
+    endwhile
+
+    let i = a:firstline
+    while i <= a:lastline
+        let cl = getline(i)
+        if uncomment
+            let cl2 = substitute(cl, "^" . min_indent, space_comment_leader, "")
+            call setline(i, cl2)
+        else
+            let cl2 = substitute(cl, space_comment_leader, min_indent, "")
+            call setline(i, cl2)
+        endif
+        let i = i + 1
+    endwhile
+endfunction
 
 function! ToggleComment(comment_leader)
     if getline('.') =~ "^". a:comment_leader
@@ -205,5 +292,3 @@ function! TabComplete()
         return "\<Tab>"
 endfunction
 
-" iabbrev <expr> for "for () {\n}"
-" iabbrev <expr> for <SID>Ask('for', "for () {}", 1)
