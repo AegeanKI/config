@@ -13,8 +13,8 @@ export LANG=en_US.UTF-8
 export EDITOR=vim
 
 export PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig"
-export LDFLAGS="-L $(xcrun --show-sdk-path)/usr/lib -L brew --prefix bzip2/lib"
-export CFLAGS="-L $(xcrun --show-sdk-path)/usr/include -L brew --prefix bzip2/include"
+export LDFLAGS="-L $(xcrun --show-sdk-path)/usr/lib -L brew --prefix bzip2/lib -L/usr/local/opt/tcl-tk/lib"
+export CFLAGS="-L $(xcrun --show-sdk-path)/usr/include -L brew --prefix bzip2/include -I/usr/local/opt/tcl-tk/include"
 
 
 setopt prompt_subst
@@ -47,8 +47,8 @@ alias cddocument="checkAndCd ~/Documents $1"
 alias cdcourse="checkAndCd ~/Documents/courses $1"
 alias cdcode="checkAndCd ~/Documents/code $1"
 alias 'sudo'='sudo' # use sudo to not call rmtrash and rmdirtrash
-alias 'nosleep'='pmset noidle'
-alias 'clmemory'='sudo purge'
+# alias 'nosleep'='pmset noidle'
+# alias 'clmemory'='sudo purge'
 alias 'vimzsh'='vim ~/.zshrc'
 alias 'vimrc'='vim ~/.vimrc'
 alias 'pwd'='pwd; pwd | pbcopy'
@@ -70,12 +70,6 @@ alias wine='wine64'
 # alias -s txt='vim'
 # alias -s c='vim'
 # alias -s cpp='vim'
-alias -s '.tar_compress'='tar cvf FileName.tar DirName'
-alias -s '.tar_decompress'='tar xvf FileName.tar'
-alias -s '.tar.gz_compress'='tar zcvf FileName.tar.gz DirName'
-alias -s '.tar.gz_decompress'='tar zxvf FileName.tar.gz'
-alias -s '.zip_compress'='zip -r FileName.zip DirName'
-alias -s '.zip_decompress'='unzip FileName.zip'
 
 # restart zsh
 function res {
@@ -89,7 +83,6 @@ function res {
     exec zsh
 }
 
-
 function checkAndCd {
     pattern="^"`echo $2 | sed 's/.\{1\}/&[a-z0-9.,_+-]*/g'`
     c=$(ls $1 | grep -Eo "$pattern")
@@ -100,9 +93,10 @@ function checkAndCd {
         fi
         cd $1
     elif [ $(echo "$c" | wc -l) -gt 1 ]; then
+        echo "$c"
         cd $1
     else
-        echo $c
+        echo "$c"
         cd $1/$c
     fi
 }
@@ -125,10 +119,9 @@ function mvd {
     fi
 }
 
-
 function python {
     if [[ "$1" == "use" ]]; then
-        if [[ $# -ne 2 ]]; then
+        if [ $# -ne 2 ]; then
             echo "need python version"
             return
         fi
@@ -147,6 +140,105 @@ function python {
     fi
 }
 
+function showCompressAndDecompress {
+    echo "compress:
+    tar cvf $fg_bold[red]file.tar $fg_bold[green]Dir$reset_color
+    tar zcvf $fg_bold[red]file.tar.gz $fg_bold[green]Dir$reset_color
+    zip -r $fg_bold[red]file.zip $fg_bold[green]Dir$reset_color
+
+decompress:
+    tar xvf $fg_bold[red]file.tar$reset_color [-d Dir]
+    tar zxvf $fg_bold[red]file.tar.gz$reset_color [--directory Dir]
+    unzip $fg_bold[red]file.zip$reset_color [--directory Dir]"
+}
+
+function compress {
+    if [ $# -lt 3 ] || [[ "${@: -2:1}" != "to" ]]; then
+        echo "usage: compress $fg_bold[green]Files/Dir $fg_bold[yellow]to$reset_color $fg_bold[red]target.zip/.tar/.tar.gz$reset_color"
+        return
+    fi
+    target_file=${@: -1:1}
+    cmd=""
+    if [[ "${target_file: -4}" == ".zip" ]]; then
+        cmd="zip -r ${target_file}"
+    elif [[ "${target_file: -7}" == ".tar.gz" ]]; then
+        cmd="tar zcvf ${target_file}"
+    elif [[ "${target_file: -4}" == ".tar" ]]; then
+        cmd="tar cvf ${target_file}"
+    else
+        echo "compress: illegal target filetype"
+        echo "usage: compress $fg_bold[green]Files/Dir $fg_bold[yellow]to$reset_color $fg_bold[red]target.zip/.tar/.tar.gz$reset_color"
+        return
+    fi
+    for file in ${@:1:#-2}
+    do
+        if ! [ -e $file ]; then
+            echo "compress: $file: No such file or directory"
+            return
+        fi
+    done
+    cmd="${cmd} ${@:1:#-2}"
+    eval $cmd
+}
+
+function decompress {
+    if [ $# -lt 1 ]; then
+        echo "usage: decompress $fg_bold[red]file.zip/.tar/.tar.gz$reset_color [to target_directory]"
+        return
+    fi
+    target_directory=""
+    if [[ "${@: -2:1}" == "to" ]]; then
+        target_directory="${@: -1}"
+    fi
+    if [[ "$target_directory" != "" ]]; then
+        for file in ${@:1:#-2}
+        do
+            if ! [ -e $file ]; then
+                echo "decompress: $file: No such file or directory"
+                return
+            fi
+        done
+
+        if ! [ -d $target_directory ]; then
+            mkdir $target_directory
+        fi
+
+        for file in ${@:1:#-2}
+        do
+            if [[ "${file: -4}" == ".zip" ]]; then
+                cmd="unzip ${file} -d $target_directory"
+                eval $cmd
+            elif [[ "${file: -7}" == ".tar.gz" ]]; then
+                cmd="tar zxvf ${file} --directory $target_directory"
+                eval $cmd
+            elif [[ "${file: -4}" == ".tar" ]]; then
+                cmd="tar xvf ${file} --directory $target_directory"
+                eval $cmd
+            fi
+        done
+    else
+        for file in ${@:1}
+        do
+            if ! [ -e $file ]; then
+                echo "decompress: $file: No such file or directory"
+                return
+            fi
+        done
+        for file in ${@:1}
+        do
+            if [[ "${file: -4}" == ".zip" ]]; then
+                cmd="unzip ${file}"
+                eval $cmd
+            elif [[ "${file: -7}" == ".tar.gz" ]]; then
+                cmd="tar zxvf ${file}"
+                eval $cmd
+            elif [[ "${file: -4}" == ".tar" ]]; then
+                cmd="tar xvf ${file}"
+                eval $cmd
+            fi
+        done
+    fi
+}
 
 export LS_COLORS=':no=00:fi=00:di=01;31:ln=01;36:pi=40;33:so=01;35:bd=40;33;01:cd=40;33;01:ex=01;32:*.cmd=01;32:*.exe=01;32:*.com=01;32:*.btm=01;32:*.bat=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.jpg=01;35:*.gif=01;35:*.bmp=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.c=01;33:*.cpp=01;33:*.MP3=01;44;37:*.mp3=01;44;37:*.pl=01;33:';
 export LSCOLORS='DxGxFxdxCxegedabagacad'
