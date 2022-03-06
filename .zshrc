@@ -18,17 +18,22 @@ export CFLAGS="-L $(xcrun --show-sdk-path)/usr/include -L brew --prefix bzip2/in
 
 
 setopt prompt_subst
+setopt rm_star_silent
 autoload -U colors && colors # Enable colors in prompt
 export TERM="xterm-256color"
 
 stty -ixon
+# let bash shortcut work
+bindkey -e
+# bindkey \^u backward-kill-line
 
 
 # Lines configured by zsh-newuser-install
 HISTFILE=~/.histfile
 HISTSIZE=1000
 SAVEHIST=1000
-setopt appendhistory autocd extendedglob nomatch
+# setopt appendhistory autocd extendedglob nomatch
+setopt append_history autocd extendedglob nomatch
 unsetopt beep
 
 # Histroy
@@ -46,6 +51,7 @@ alias cddownload="checkAndCd ~/Downloads $1"
 alias cddocument="checkAndCd ~/Documents $1"
 alias cdcourse="checkAndCd ~/Documents/courses $1"
 alias cdcode="checkAndCd ~/Documents/code $1"
+alias cdvt="checkAndCd ~/Documents/vtuber"
 alias 'sudo'='sudo' # use sudo to not call rmtrash and rmdirtrash
 # alias 'nosleep'='pmset noidle'
 # alias 'clmemory'='sudo purge'
@@ -229,6 +235,9 @@ function decompress {
             if [[ "${file: -4}" == ".zip" ]]; then
                 cmd="unzip ${file}"
                 eval $cmd
+            elif [[ "${file: -3}" == ".gz" ]]; then
+                cmd="gunzip ${file}"
+                eval $cmd
             elif [[ "${file: -7}" == ".tar.gz" ]]; then
                 cmd="tar zxvf ${file}"
                 eval $cmd
@@ -237,6 +246,34 @@ function decompress {
                 eval $cmd
             fi
         done
+    fi
+}
+
+function hollowknight {
+    if [ $# -gt 2 ]; then
+        echo "usage: hollowknight [mod]"
+        return
+    fi
+    if [ $# -eq 1 ] && [[ "$1" != "mod" ]]; then
+        echo "usage: hollowknight [mod]"
+        return
+    fi
+
+    modDLL=/Users/shenchi/Library/Application\ Support/Steam/steamapps/common/Hollow\ Knight/hollow_knight.app/Contents/Resources/Data/Managed/Assembly-CSharp-mod.dll
+    originDLL=/Users/shenchi/Library/Application\ Support/Steam/steamapps/common/Hollow\ Knight/hollow_knight.app/Contents/Resources/Data/Managed/Assembly-CSharp-origin.dll
+    DLLforSteam=/Users/shenchi/Library/Application\ Support/Steam/steamapps/common/Hollow\ Knight/hollow_knight.app/Contents/Resources/Data/Managed/Assembly-CSharp.dll
+    if [ $# -eq 1 ]; then
+        if [ -e $modDLL ]; then
+            mv $DLLforSteam $originDLL
+            mv $modDLL $DLLforSteam
+        fi
+        echo "now using mod"
+    else
+        if [ -e $originDLL ]; then
+            mv $DLLforSteam $modDLL
+            mv $originDLL $DLLforSteam
+        fi
+        echo "stop using mod"
     fi
 }
 
