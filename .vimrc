@@ -225,9 +225,9 @@
     if !exists('b:comment_leader')
         let b:comment_leader = '# '
     endif
-    vnoremap <C-\> :call ToggleComment(b:comment_leader)<CR>
-    nnoremap <C-\> :call ToggleComment(b:comment_leader)<CR>
-    inoremap <C-\> <esc>:call ToggleComment(b:comment_leader)<CR>i
+    vnoremap <C-_> :call ToggleComment(b:comment_leader)<CR>
+    nnoremap <C-_> :call ToggleComment(b:comment_leader)<CR>
+    inoremap <C-_> <esc>:call ToggleComment(b:comment_leader)<CR>i
     vnoremap <C-d> :call ToggleDebug(b:comment_leader)<CR>
     nnoremap <C-d> :call ToggleDebug(b:comment_leader)<CR>
     inoremap <C-d> <esc>:call ToggleDebug(b:comment_leader)<CR>i
