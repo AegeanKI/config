@@ -5,7 +5,11 @@ fi
 # Adapted from code found at <https://gist.github.com/1712320>.
 
 export PATH=$HOME/.local/bin
+export PATH=$PATH:$HOME/miniconda3/bin
 export PATH=$PATH:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin
+export PATH=$PATH:/usr/local/cuda-11.2/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda-11.2/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/.mujoco/mjpro150/bin
 export FPATH=~/.zfunc:$FPATH
 # export NVM_DIR="$HOME/.nvm"
 export LC_ALL=zh_TW.UTF-8
@@ -13,9 +17,8 @@ export LANG=en_US.UTF-8
 export EDITOR=vim
 
 export PKG_CONFIG_PATH="/usr/local/opt/zlib/lib/pkgconfig"
-export LDFLAGS="-L $(xcrun --show-sdk-path)/usr/lib -L brew --prefix bzip2/lib -L/usr/local/opt/tcl-tk/lib"
-export CFLAGS="-L $(xcrun --show-sdk-path)/usr/include -L brew --prefix bzip2/include -I/usr/local/opt/tcl-tk/include"
-
+# export LDFLAGS="-L $(xcrun --show-sdk-path)/usr/lib -L brew --prefix bzip2/lib -L/usr/local/opt/tcl-tk/lib"
+# export CFLAGS="-L $(xcrun --show-sdk-path)/usr/include -L brew --prefix bzip2/include -I/usr/local/opt/tcl-tk/include"
 
 setopt prompt_subst
 setopt rm_star_silent
@@ -76,6 +79,7 @@ alias wine='wine64'
 # alias -s txt='vim'
 # alias -s c='vim'
 # alias -s cpp='vim'
+alias rake='noglob rake'
 
 # restart zsh
 function res {
@@ -125,26 +129,26 @@ function mvd {
     fi
 }
 
-function python {
-    if [[ "$1" == "use" ]]; then
-        if [ $# -ne 2 ]; then
-            echo "need python version"
-            return
-        fi
+# function python {
+#     if [[ "$1" == "use" ]]; then
+#         if [ $# -ne 2 ]; then
+#             echo "need python version"
+#             return
+#         fi
         
-        local version="$2"
-        local python_path=~/.local/bin/python$version
-        if [ -e $python_path ]; then
-            rm ~/.local/bin/python3
-            ln -s ~/.local/bin/python$version ~/.local/bin/python3
-            echo "change python version to $version"
-        else
-            echo "$python_path not exist"
-        fi
-    else
-        echo "use python3, or add 'use' to choose version"
-    fi
-}
+#         local version="$2"
+#         local python_path=~/.local/bin/python$version
+#         if [ -e $python_path ]; then
+#             rm ~/.local/bin/python3
+#             ln -s ~/.local/bin/python$version ~/.local/bin/python3
+#             echo "change python version to $version"
+#         else
+#             echo "$python_path not exist"
+#         fi
+#     else
+#         echo "use python3, or add 'use' to choose version"
+#     fi
+# }
 
 function showCompressAndDecompress {
     echo "compress:
@@ -369,4 +373,19 @@ fi
 
 # screenfetch -E
 ls -l ~/.zshrc | awk '{print $11}'
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/home/shenchi/miniconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/home/shenchi/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/home/shenchi/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/home/shenchi/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
 

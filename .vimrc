@@ -78,6 +78,13 @@
     set hlsearch        
 " }
 
+" sound {
+    " set visual bell
+    set visualbell
+    " disable beep
+    set t_vb=
+" }
+
 " some useful map {
     set timeout
     set timeoutlen=200
